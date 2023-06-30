@@ -258,6 +258,7 @@ class oscilloscope(thesdk):
                     signal[:,2*i]=signal[:,2*i]/x_scaler
                 else:
                     x_scale=''
+                    x_scaler=1
                 if len(self.signames) > 0 and len(self.signames) == int(ncol/2):
                     plt.plot(signal[:,2*i],signal[:,2*i+1],label=self.signames[i])
                     plt.legend()
@@ -315,7 +316,7 @@ class oscilloscope(thesdk):
         if self.title != '':
             plt.title(self.title)
         if self.xlim is not None:
-            plt.xlim(self.xlim)
+            plt.xlim(self.xlim[0]/x_scaler,self.xlim[1]/x_scaler)
         else:
             plt.autoscale(True,'x',tight=True)
         if self.plot:
