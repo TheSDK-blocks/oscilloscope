@@ -39,6 +39,7 @@ class oscilloscope(thesdk):
         Title for the produced figure.
     scale_x: bool, default True
         Scale the x-axis (change the unit for more clearer scale of the time).
+        WARNING: Can not be done if xlabel is changed manually
     nsamp: int, default None
         Number of samples to be plotted. Used for truncating the plotted data
         for sampled signals. When nsamp is None, the full signal is plotted.
@@ -251,7 +252,7 @@ class oscilloscope(thesdk):
             if ncol % 2 != 0:
                 self.print_log(type='W',msg='Missing a time-vector?')
             figure=plt.figure()
-            if self.scale_x:
+            if self.scale_x and self.xlabel=='':
                 if self.xlim is not None:
                     # Change the x-axis scale
                     x_scale,x_scaler=self.float_to_si_string(self.xlim[1])
