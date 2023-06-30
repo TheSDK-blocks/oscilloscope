@@ -37,6 +37,8 @@ class oscilloscope(thesdk):
         the length of input signal list.
     title: str, default ''
         Title for the produced figure.
+    scale_x: bool, default True
+        Scale the x-axis (change the unit for more clearer scale of the time).
     nsamp: int, default None
         Number of samples to be plotted. Used for truncating the plotted data
         for sampled signals. When nsamp is None, the full signal is plotted.
@@ -76,6 +78,7 @@ class oscilloscope(thesdk):
         self.xlabel = ''
         self.ylabel = ''
         self.xlim = None
+        self.scale_x = True
 
         # Used internally to determine signal properties:
         self.xdata=None
@@ -99,6 +102,41 @@ class oscilloscope(thesdk):
         ### Lets fix this later on
         if self.model=='vhdl':
             self.print_log(type='F', msg='VHDL simulation is not supported with v1.2\n Use v1.1')
+
+
+    def float_to_si_string(self, num, precision=6):
+        """Converts the given floating point number to a SI prefix string and divider.
+
+        Parameters
+        ----------
+        num : float
+            the number to convert.
+        precision : int
+            number of significant digits, defaults to 6.
+
+        Returns
+        -------
+        x_scale : str
+            the SI string of the value.
+        x_scaler : float
+            the scaler (divider) that can be used to normalize the signal to the
+            given SI unit.
+        """
+        si_mag = [-18, -15, -12, -9, -6, -3, 0, 3, 6, 9, 12]
+        si_pre = ['a', 'f', 'p', 'n', 'u', 'm', '', 'k', 'M', 'G', 'T']
+
+        if abs(num) < 1e-21:
+            return '0'
+        exp = np.log10(abs(num))
+
+        pre_idx = len(si_mag) - 1
+        for idx in range(len(si_mag)):
+            if exp < si_mag[idx]:
+                pre_idx = idx - 1
+                break
+
+        res = 10.0 ** (si_mag[pre_idx])
+        return si_pre[pre_idx],res
 
     def sanitize_input(self, signal):
         '''
@@ -214,13 +252,19 @@ class oscilloscope(thesdk):
                 self.print_log(type='W',msg='Missing a time-vector?')
             figure=plt.figure()
             for i in range(int(ncol/2)):
+                if self.scale_x:
+                    # Change the x-axis scale
+                    x_scale,x_scaler=self.float_to_si_string(signal[:,2*i][-1])
+                    signal[:,2*i]=signal[:,2*i]/x_scaler
+                else:
+                    x_scale=''
                 if len(self.signames) > 0 and len(self.signames) == int(ncol/2):
                     plt.plot(signal[:,2*i],signal[:,2*i+1],label=self.signames[i])
                     plt.legend()
                 else:
                     plt.plot(signal[:,2*i],signal[:,2*i+1])
             if self.xlabel == '':
-                self.xlabel='Time (s)'
+                self.xlabel=f'Time ({x_scale}s)'
             if self.ylabel == '':
                 self.ylabel='Voltage (V)'
         # Case 2: signal matrix contains only y-values (sampled data)
