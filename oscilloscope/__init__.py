@@ -127,7 +127,7 @@ class oscilloscope(thesdk):
         si_pre = ['a', 'f', 'p', 'n', 'u', 'm', '', 'k', 'M', 'G', 'T']
 
         if abs(num) < 1e-21:
-            return '0'
+            return '',1
         exp = np.log10(abs(num))
 
         pre_idx = len(si_mag) - 1
