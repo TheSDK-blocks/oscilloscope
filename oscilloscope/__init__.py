@@ -251,19 +251,19 @@ class oscilloscope(thesdk):
             if ncol % 2 != 0:
                 self.print_log(type='W',msg='Missing a time-vector?')
             figure=plt.figure()
-            for i in range(int(ncol/2)):
-                if self.scale_x:
-                    if self.xlim is not None:
-                        # Change the x-axis scale
-                        x_scale,x_scaler=self.float_to_si_string(self.xlim[1])
-                        signal[:,2*i]=signal[:,2*i]/x_scaler
-                    else:
-                        # Change the x-axis scale
-                        x_scale,x_scaler=self.float_to_si_string(signal[:,2*i][-1])
-                        signal[:,2*i]=signal[:,2*i]/x_scaler
+            if self.scale_x:
+                if self.xlim is not None:
+                    # Change the x-axis scale
+                    x_scale,x_scaler=self.float_to_si_string(self.xlim[1])
+                    signal[:,2*i]=signal[:,2*i]/x_scaler
                 else:
-                    x_scale=''
-                    x_scaler=1
+                    # Change the x-axis scale
+                    x_scale,x_scaler=self.float_to_si_string(signal[:,2*i][-1])
+                    signal[:,2*i]=signal[:,2*i]/x_scaler
+            else:
+                x_scale=''
+                x_scaler=1
+            for i in range(int(ncol/2)):
                 if len(self.signames) > 0 and len(self.signames) == int(ncol/2):
                     plt.plot(signal[:,2*i],signal[:,2*i+1],label=self.signames[i])
                     plt.legend()
