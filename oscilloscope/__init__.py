@@ -258,7 +258,7 @@ class oscilloscope(thesdk):
                     signal[:,0]=signal[:,0]/x_scaler
                 else:
                     # Change the x-axis scale
-                    x_scale,x_scaler=self.float_to_si_string(signal[:,2*i][-1])
+                    x_scale,x_scaler=self.float_to_si_string(signal[:,0][-1])
                     signal[:,0]=signal[:,0]/x_scaler
             else:
                 x_scale=''
