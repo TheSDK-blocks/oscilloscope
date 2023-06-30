@@ -253,9 +253,14 @@ class oscilloscope(thesdk):
             figure=plt.figure()
             for i in range(int(ncol/2)):
                 if self.scale_x:
-                    # Change the x-axis scale
-                    x_scale,x_scaler=self.float_to_si_string(signal[:,2*i][-1])
-                    signal[:,2*i]=signal[:,2*i]/x_scaler
+                    if self.xlim is not None:
+                        # Change the x-axis scale
+                        x_scale,x_scaler=self.float_to_si_string(self.xlim[1])
+                        signal[:,2*i]=signal[:,2*i]/x_scaler
+                    else:
+                        # Change the x-axis scale
+                        x_scale,x_scaler=self.float_to_si_string(signal[:,2*i][-1])
+                        signal[:,2*i]=signal[:,2*i]/x_scaler
                 else:
                     x_scale=''
                     x_scaler=1
