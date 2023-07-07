@@ -226,7 +226,7 @@ class oscilloscope(thesdk):
 
     def main(self):
         #TODO: Maybe we could split the main function into helpers
-        signal = np.copy(self.IOS.Members['in'].Data)
+        signal = np.copy(self.IOS.Members['in'].Data) # Use np.copy in order to skip pointer value change issues
         signal = self.sanitize_input(signal)
         if isinstance(signal,list): # We plot multiple signals
             self.is_stack=True
