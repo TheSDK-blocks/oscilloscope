@@ -227,7 +227,7 @@ class oscilloscope(thesdk):
     def main(self):
         #TODO: Maybe we could split the main function into helpers
         insig = self.IOS.Members['in'].Data
-        del self.IOS.Members['in'].Data
+        del self.IOS.Members['in']
         self.IOS.Members['in'].Data=insig
         signal=insig
         signal = self.sanitize_input(signal)
