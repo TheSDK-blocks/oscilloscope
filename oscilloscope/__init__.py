@@ -227,7 +227,8 @@ class oscilloscope(thesdk):
     def main(self):
         #TODO: Maybe we could split the main function into helpers
         insig = self.IOS.Members['in'].Data
-        signal = self.sanitize_input(insig)
+        signal=insig
+        signal = self.sanitize_input(signal)
         if isinstance(signal,list): # We plot multiple signals
             self.is_stack=True
             signal=self.stack_and_save(signal)
