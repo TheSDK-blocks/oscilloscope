@@ -227,7 +227,7 @@ class oscilloscope(thesdk):
     def main(self):
         #TODO: Maybe we could split the main function into helpers
         if isinstance(self.IOS.Members['in'].Data,list):
-            signal = self.IOS.Members['in'].Data
+            signal = [s.copy() for s in self.IOS.Members['in'].Data]
         else: # Just numpy array
             signal = np.copy(self.IOS.Members['in'].Data) # Use np.copy in order to skip pointer value change issues
         signal = self.sanitize_input(signal)
