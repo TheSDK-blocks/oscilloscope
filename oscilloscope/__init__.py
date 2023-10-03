@@ -249,6 +249,7 @@ class oscilloscope(thesdk):
         # Check signal type:
         # Case 1: signal matrix contains data in x,y value pairs
         if isinstance(signal.shape,tuple) and self.xdata: 
+            x_scaler = 1
             if self.nsamp is not None:
                 signal=signal[-self.nsamp:,:]
             ncol = len(signal[0,:])
@@ -278,6 +279,7 @@ class oscilloscope(thesdk):
                 self.ylabel='Voltage (V)'
         # Case 2: signal matrix contains only y-values (sampled data)
         elif len(signal.shape) > 1 and not self.xdata:
+            x_scaler = 1
             if self.nsamp is not None:
                 signal=signal[-self.nsamp:,:]
             ncol = signal.shape[1]
@@ -302,6 +304,7 @@ class oscilloscope(thesdk):
                 self.ylabel='Code'
         # Case 3: Input was single vector, containing only y-values (sampled data)
         else:
+            x_scaler = 1
             if self.nsamp is not None:
                 signal=signal[-self.nsamp:]
             figure=plt.figure()
