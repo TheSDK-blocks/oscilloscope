@@ -81,6 +81,9 @@ class oscilloscope(thesdk):
         self.xlim = None
         self.scale_x = True
 
+        self.Rs = False
+        self.draw_eye = False
+
         # Used internally to determine signal properties:
         self.xdata=None
         self.maxlen = 0
@@ -246,6 +249,9 @@ class oscilloscope(thesdk):
             self.peak_to_peak=self.find_peaktopeak(signal)
             if self.export[0] and self.export_csv:
                 np.savetxt("%s.csv"%(self.export[1]),signal,delimiter=",")        
+        
+        if self.draw_eye:
+            self.eye_diagram(signal,self.Rs)
         # Check signal type:
         # Case 1: signal matrix contains data in x,y value pairs
         if isinstance(signal.shape,tuple) and self.xdata: 
@@ -340,6 +346,7 @@ class oscilloscope(thesdk):
             plt.close()
         plt.pause(0.5)
 
+
     def find_peaktopeak(self,signal):
         if isinstance(signal.shape, tuple) and (len(signal.shape) > 1):
             tmpsig = signal[:,1]
@@ -348,6 +355,50 @@ class oscilloscope(thesdk):
         tmpsig=tmpsig[-int(0.5*len(tmpsig)):] #allow output to settle
         ptp=max(tmpsig)-min(tmpsig)
         return ptp
+
+    def eye_diagram(self,signal,Rs):
+
+        # signal.shape must be tuple and include samples and timestamps! 
+        # Rs must be given!
+        if not Rs:
+            self.print_log(type='F',msg="Invalid frequency. Rs must be set.")
+            return None
+        if not (isinstance(signal.shape, tuple) and (len(signal.shape) > 1)):
+            self.print_log(type='F',msg="Invalid signal shape: signal.shape must be tuple.")
+            return None
+         
+        symbol_duration= 1 / Rs 
+        symbols=int((signal[-1,0]) / symbol_duration)      # signal length in symbols
+        sps=int(len(signal[:,0]) // symbols)         # Samples / symbol
+
+        plt.figure()
+        axis = plt.gca()
+
+        # Search for the first transition
+        min_amp=np.min(signal[:,1])
+        max_amp=np.max(signal[:,1])
+        avg_amp=(min_amp+max_amp)/2
+        i=0
+        first_tran=False
+        while i < len(signal[:,1]):
+            if (signal[i,1] >= avg_amp*0.9) and (signal[i,1] <= avg_amp*1.1):
+                first_tran=signal[i,0]
+                break
+            else: i+=1
+         
+        # Cut signal to sequences and plot the eye
+        start=sps//2                    # Begin from middle of the eye
+        stop=start+sps*2                # End at middle of the eye 2 sps later
+        tmpsig = np.zeros((2*sps,2))    # Initialize temporary vector
+        while stop < len(signal):       # Drawing loop
+            # Timestamps (with first transition - symbol duration/2 shift to place eye to middle) 
+            tmpsig[:,0] = ((signal[start:stop,0]-(first_tran-symbol_duration/2)) % (symbol_duration*2) - symbol_duration)
+            tmpsig[:,1] = signal[start:stop,1]      # sampled values
+            plt.plot(tmpsig[:,0],tmpsig[:,1],'-',alpha=0.25,color='black') #plot
+            start = stop+1  # calculate the next start and stop
+            stop = start+sps*2
+
+        plt.show(block=False)
 
     def run(self,*arg):
         if len(arg)>0:
