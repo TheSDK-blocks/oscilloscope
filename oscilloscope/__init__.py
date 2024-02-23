@@ -367,9 +367,6 @@ class oscilloscope(thesdk):
             self.print_log(type='F',msg="Invalid signal shape: signal.shape must be tuple.")
             return None
          
-        symbol_duration= 1 / Rs 
-        symbols=int((signal[-1,0]) / symbol_duration)      # signal length in symbols
-
         plt.figure()
         axis = plt.gca()
 
@@ -386,6 +383,7 @@ class oscilloscope(thesdk):
             else: i+=1
          
         # Timestamps (with first transition - symbol duration/2 shift to place eye to middle) 
+        symbol_duration= 1 / Rs 
         timestamps = ((signal[:,0]-(first_tran-symbol_duration/2)) % (symbol_duration*2)) - symbol_duration
         start= 0
         # Finding the limit
