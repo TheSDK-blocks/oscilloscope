@@ -369,7 +369,6 @@ class oscilloscope(thesdk):
          
         symbol_duration= 1 / Rs 
         symbols=int((signal[-1,0]) / symbol_duration)      # signal length in symbols
-        sps=int(len(signal[:,0]) // symbols)         # Samples / symbol
 
         plt.figure()
         axis = plt.gca()
@@ -386,17 +385,26 @@ class oscilloscope(thesdk):
                 break
             else: i+=1
          
-        # Cut signal to sequences and plot the eye
-        start=sps//2                    # Begin from middle of the eye
-        stop=start+sps*2                # End at middle of the eye 2 sps later
-        tmpsig = np.zeros((2*sps,2))    # Initialize temporary vector
-        while stop < len(signal):       # Drawing loop
-            # Timestamps (with first transition - symbol duration/2 shift to place eye to middle) 
-            tmpsig[:,0] = ((signal[start:stop,0]-(first_tran-symbol_duration/2)) % (symbol_duration*2) - symbol_duration)
-            tmpsig[:,1] = signal[start:stop,1]      # sampled values
-            plt.plot(tmpsig[:,0],tmpsig[:,1],'-',alpha=0.25,color='black') #plot
+        # Timestamps (with first transition - symbol duration/2 shift to place eye to middle) 
+        timestamps = ((signal[:,0]-(first_tran-symbol_duration/2)) % (symbol_duration*2)) - symbol_duration
+        start= 0
+        # Finding the limit
+        for j in np.linspace(start+1,len(timestamps)-1,len(timestamps)-start,dtype=int):
+            if timestamps[j]<timestamps[start]:
+                stop=j-1
+                break
+
+        while start<len(timestamps):      # Drawing loop
+            times = timestamps[start:stop]          # Timestamps
+            datapoints = signal[start:stop,1]       # Sampled values
+            plt.plot(times,datapoints,'-',alpha=0.25,color='black') #plot
             start = stop+1  # calculate the next start and stop
-            stop = start+sps*2
+            for j in np.linspace((start+1),(len(timestamps)-1),(len(timestamps)-start),dtype=int):
+                if timestamps[j]<timestamps[j-1]:
+                    stop=j-1
+                    break
+            if stop<start:      # Break the loop at the end
+                break
 
         plt.show(block=False)
 
