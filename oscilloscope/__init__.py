@@ -67,7 +67,7 @@ class oscilloscope(thesdk):
 
     def __init__(self,*arg): 
         self.print_log(type='I', msg='Initializing %s' %(__name__)) 
-        self.proplist = [ 'nsamp', 'plot' ]
+        self.proplist = ['Rs','nsamp','plot']
         
         self.nsamp = None 
 
@@ -251,7 +251,7 @@ class oscilloscope(thesdk):
                 np.savetxt("%s.csv"%(self.export[1]),signal,delimiter=",")        
         
         if self.draw_eye:
-            self.eye_diagram(signal,self.Rs)
+            self.eye_diagram(signal)
         # Check signal type:
         # Case 1: signal matrix contains data in x,y value pairs
         if isinstance(signal.shape,tuple) and self.xdata: 
