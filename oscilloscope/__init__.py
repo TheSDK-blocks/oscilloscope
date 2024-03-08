@@ -356,49 +356,38 @@ class oscilloscope(thesdk):
         ptp=max(tmpsig)-min(tmpsig)
         return ptp
 
-    def eye_diagram(self,signal,Rs):
+    def eye_diagram(self,signal):
 
         # signal.shape must be tuple and include samples and timestamps! 
-        # Rs must be given!
-        if not Rs:
-            self.print_log(type='F',msg="Invalid frequency. Rs must be set.")
-            return None
         if not (isinstance(signal.shape, tuple) and (len(signal.shape) > 1)):
             self.print_log(type='F',msg="Invalid signal shape: signal.shape must be tuple.")
             return None
          
-        symbol_duration= 1 / Rs 
-        symbols=int((signal[-1,0]) / symbol_duration)      # signal length in symbols
-        sps=int(len(signal[:,0]) // symbols)         # Samples / symbol
+        period=1/self.Rs
+        symbols=int((signal[-1,0]) / period)
 
-        plt.figure()
-        axis = plt.gca()
+        figure=plt.figure()
+        axis=plt.gca()
 
-        # Search for the first transition
-        min_amp=np.min(signal[:,1])
-        max_amp=np.max(signal[:,1])
-        avg_amp=(min_amp+max_amp)/2
-        i=0
-        first_tran=False
-        while i < len(signal[:,1]):
-            if (signal[i,1] >= avg_amp*0.9) and (signal[i,1] <= avg_amp*1.1):
-                first_tran=signal[i,0]
-                break
-            else: i+=1
-         
-        # Cut signal to sequences and plot the eye
-        start=sps//2                    # Begin from middle of the eye
-        stop=start+sps*2                # End at middle of the eye 2 sps later
-        tmpsig = np.zeros((2*sps,2))    # Initialize temporary vector
-        while stop < len(signal):       # Drawing loop
-            # Timestamps (with first transition - symbol duration/2 shift to place eye to middle) 
-            tmpsig[:,0] = ((signal[start:stop,0]-(first_tran-symbol_duration/2)) % (symbol_duration*2) - symbol_duration)
-            tmpsig[:,1] = signal[start:stop,1]      # sampled values
-            plt.plot(tmpsig[:,0],tmpsig[:,1],'-',alpha=0.25,color='black') #plot
-            start = stop+1  # calculate the next start and stop
-            stop = start+sps*2
+        for i in range(symbols - 1):
+            # Plot 2T intervals of the signal while increasing start time by 1T every iteration
+            interval=np.where(np.logical_and(i*period < signal[:,0], signal[:,0] < (i+2)*period))[0]
+            timestamps=signal[interval,0]-i*period
+            x_scale,x_scaler=self.float_to_si_string(timestamps[-1])
+            y_scale,y_scaler=self.float_to_si_string(signal[interval,1][-1])
+            plt.xlabel(f"Time ({x_scale}s)")
+            plt.ylabel(f"Voltage ({y_scale})V")
+            plt.plot(timestamps/x_scaler,signal[interval,1]/y_scaler,'-',alpha=0.1,color='black')
 
-        plt.show(block=False)
+        if self.plot:
+            plt.show(block=False)
+        if self.export[0]:
+            fname = "%s_eyediagram.pdf"%self.export[1]
+            self.print_log(type='I',msg='Saving eyediagram to %s.' % fname)
+            figure.savefig(fname,format='pdf')
+        if not self.plot:
+            plt.close()
+        plt.pause(0.5)
 
     def run(self,*arg):
         if len(arg)>0:
