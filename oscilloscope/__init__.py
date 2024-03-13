@@ -67,7 +67,7 @@ class oscilloscope(thesdk):
 
     def __init__(self,*arg): 
         self.print_log(type='I', msg='Initializing %s' %(__name__)) 
-        self.proplist = [ 'nsamp', 'plot' ]
+        self.proplist = ['Rs','nsamp','plot']
         
         self.nsamp = None 
 
@@ -80,6 +80,9 @@ class oscilloscope(thesdk):
         self.ylabel = ''
         self.xlim = None
         self.scale_x = True
+
+        self.Rs = False
+        self.draw_eye = False
 
         # Used internally to determine signal properties:
         self.xdata=None
@@ -246,6 +249,9 @@ class oscilloscope(thesdk):
             self.peak_to_peak=self.find_peaktopeak(signal)
             if self.export[0] and self.export_csv:
                 np.savetxt("%s.csv"%(self.export[1]),signal,delimiter=",")        
+        
+        if self.draw_eye:
+            self.eye_diagram(signal)
         # Check signal type:
         # Case 1: signal matrix contains data in x,y value pairs
         if isinstance(signal.shape,tuple) and self.xdata: 
@@ -340,6 +346,7 @@ class oscilloscope(thesdk):
             plt.close()
         plt.pause(0.5)
 
+
     def find_peaktopeak(self,signal):
         if isinstance(signal.shape, tuple) and (len(signal.shape) > 1):
             tmpsig = signal[:,1]
@@ -348,6 +355,40 @@ class oscilloscope(thesdk):
         tmpsig=tmpsig[-int(0.5*len(tmpsig)):] #allow output to settle
         ptp=max(tmpsig)-min(tmpsig)
         return ptp
+
+    def eye_diagram(self,signal):
+
+        # signal.shape must be tuple and include samples and timestamps! 
+        if not (isinstance(signal.shape, tuple) and (len(signal.shape) > 1)):
+            self.print_log(type='F',msg="Invalid signal shape: signal.shape must be tuple.")
+            return None
+         
+        period=1/self.Rs
+        symbols=int((signal[-1,0]) / period)
+
+        figure=plt.figure()
+        axis=plt.gca()
+
+        for i in range(symbols - 1):
+            # Plot 2T intervals of the signal while increasing start time by 1T every iteration
+            interval=np.where(np.logical_and(i*period < signal[:,0], signal[:,0] < (i+2)*period))[0]
+            if len(interval) > 0:
+                timestamps=signal[interval,0]-i*period
+                x_scale,x_scaler=self.float_to_si_string(timestamps[-1])
+                y_scale,y_scaler=self.float_to_si_string(signal[interval,1][-1])
+                plt.xlabel(f"Time ({x_scale}s)")
+                plt.ylabel(f"Voltage ({y_scale})V")
+                plt.plot(timestamps/x_scaler,signal[interval,1]/y_scaler,'-',alpha=0.1,color='black')
+
+        if self.plot:
+            plt.show(block=False)
+        if self.export[0]:
+            fname = "%s_eyediagram.pdf"%self.export[1]
+            self.print_log(type='I',msg='Saving eyediagram to %s.' % fname)
+            figure.savefig(fname,format='pdf')
+        if not self.plot:
+            plt.close()
+        plt.pause(0.5)
 
     def run(self,*arg):
         if len(arg)>0:
