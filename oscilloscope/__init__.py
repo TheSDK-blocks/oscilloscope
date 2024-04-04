@@ -262,7 +262,8 @@ class oscilloscope(thesdk):
                     x_scale,x_scaler=self.float_to_si_string(self.xlim[1])
                 else:
                     # Compute the x-axis scale
-                    x_scale,x_scaler=self.float_to_si_string(signal[:,0][-1])
+                    max_time = np.nanmax(signal[:,0::2][-1])
+                    x_scale,x_scaler=self.float_to_si_string(max_time)
             else:
                 x_scale=''
                 x_scaler=1
