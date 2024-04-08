@@ -370,15 +370,15 @@ class oscilloscope(thesdk):
         figure=plt.figure()
         axis=plt.gca()
 
+        x_scale,x_scaler=self.float_to_si_string(np.nanmax(signal[:,0]))
+        y_scale,y_scaler=self.float_to_si_string(np.nanmax(signal[:,1]))
         for i in range(symbols - 1):
             # Plot 2T intervals of the signal while increasing start time by 1T every iteration
             interval=np.where(np.logical_and(i*period < signal[:,0], signal[:,0] < (i+2)*period))[0]
             if len(interval) > 0:
                 timestamps=signal[interval,0]-i*period
-                x_scale,x_scaler=self.float_to_si_string(timestamps[-1])
-                y_scale,y_scaler=self.float_to_si_string(signal[interval,1][-1])
                 plt.xlabel(f"Time ({x_scale}s)")
-                plt.ylabel(f"Voltage ({y_scale})V")
+                plt.ylabel(f"Voltage ({y_scale}V)")
                 plt.plot(timestamps/x_scaler,signal[interval,1]/y_scaler,'-',alpha=0.1,color='black')
 
         if self.plot:
