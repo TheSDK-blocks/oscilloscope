@@ -79,6 +79,7 @@ class oscilloscope(thesdk):
         self.xlabel = ''
         self.ylabel = ''
         self.xlim = None
+        self.ylim = None
         self.scale_x = True
 
         self.Rs = False
@@ -337,6 +338,8 @@ class oscilloscope(thesdk):
             plt.xlim(self.xlim[0]/x_scaler,self.xlim[1]/x_scaler)
         else:
             plt.autoscale(True,'x',tight=True)
+        if self.ylim is not None:
+            plt.ylim(self.ylim[0], self.ylim[1])
         if self.plot:
             plt.show(block=False)
         if self.export[0]:
