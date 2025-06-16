@@ -91,6 +91,8 @@ class oscilloscope(thesdk):
         self.IOS=Bundle()
         self.IOS.Members['in']=IO()
 
+        self.figure = None
+
         self.model='py'
         self.par= False
         self.queue= []
@@ -337,15 +339,16 @@ class oscilloscope(thesdk):
             plt.xlim(self.xlim[0]/x_scaler,self.xlim[1]/x_scaler)
         else:
             plt.autoscale(True,'x',tight=True)
+        self.figure = figure
         if self.plot:
             plt.show(block=False)
+            plt.pause(0.5)
         if self.export[0]:
             fname = "%s.pdf"%self.export[1]
             self.print_log(type='I',msg='Saving figure to %s.' % fname)
             figure.savefig(fname,format='pdf')
         if not self.plot:
             plt.close()
-        plt.pause(0.5)
 
 
     def find_peaktopeak(self,signal):
